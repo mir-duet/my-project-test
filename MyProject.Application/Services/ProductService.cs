@@ -73,7 +73,7 @@ public class ProductService : IProductService
         }
 
         // Business rule: Cannot deactivate if stock < 10
-        if (!isActive && product.IsActive && stock < 10)
+        if (!isActive && product.IsActive && product.Stock < 10)
         {
             throw new ValidationException("Cannot deactivate product with stock less than 10.");
         }
@@ -151,16 +151,9 @@ public class ProductService : IProductService
 
     public async Task<bool> IsProductNameUniqueAsync(string name, Guid? excludeId = null)
     {
-        if (excludeId.HasValue)
-        {
-            var product = await _unitOfWork.Repository<Product>().FirstOrDefaultAsync(p => p.Name == name && p.Id != excludeId.Value);
-            return product == null;
-        }
-        else
-        {
-            var product = await _unitOfWork.Repository<Product>().FirstOrDefaultAsync(p => p.Name == name);
-            return product == null;
-        }
+        var product = await _unitOfWork.Repository<Product>().FirstOrDefaultAsync(
+            p => p.Name == name && (!excludeId.HasValue || p.Id != excludeId.Value));
+        return product == null;
     }
 
     public async Task<ProductDto?> GetProductByNameAsync(string name)

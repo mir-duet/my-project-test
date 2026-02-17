@@ -100,7 +100,7 @@ This project implements Clean Architecture with CQRS pattern, MediatR, FluentVal
 - ✅ Checks product exists (throws NotFoundException)
 - ✅ Validates price >= 0
 - ✅ Validates name doesn't conflict with other products
-- ✅ **Business Rule**: Cannot deactivate if stock < 10
+- ✅ **Business Rule**: Cannot deactivate if current product stock < 10
 - ✅ Updates timestamps
 
 ### **DeleteProductAsync**

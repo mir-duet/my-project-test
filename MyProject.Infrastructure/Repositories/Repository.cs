@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using MyProject.Application.Interfaces;
+using MyProject.Domain.Entities;
 using MyProject.Infrastructure.Persistence;
 using System.Linq.Expressions;
 
 namespace MyProject.Infrastructure.Repositories;
 
-public class Repository<T> : IRepository<T> where T : class
+public class Repository<T> : IRepository<T> where T : class, IEntity
 {
     protected readonly ApplicationDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -23,17 +24,22 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.AsNoTracking().ToListAsync();
     }
 
     public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
     {
-        return await _dbSet.Where(predicate).ToListAsync();
+        return await _dbSet.AsNoTracking().Where(predicate).ToListAsync();
     }
 
     public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
     {
-        return await _dbSet.FirstOrDefaultAsync(predicate);
+        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicate);
+    }
+
+    public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.AnyAsync(predicate);
     }
 
     public async Task AddAsync(T entity)
@@ -63,6 +69,8 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<IEnumerable<T>> GetPagedAsync(int pageNumber, int pageSize)
     {
         return await _dbSet
+            .AsNoTracking()
+            .OrderBy(e => e.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

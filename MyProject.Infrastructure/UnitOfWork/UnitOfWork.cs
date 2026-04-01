@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using MyProject.Application.Interfaces;
+using MyProject.Domain.Entities;
 using MyProject.Infrastructure.Persistence;
 using MyProject.Infrastructure.Repositories;
 
@@ -16,15 +17,15 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
     }
 
-    public IRepository<T> Repository<T>() where T : class
+    public IRepository<T> Repository<T>() where T : class, IEntity
     {
         var type = typeof(T);
-        if (!_repositories.ContainsKey(type))
+        if (!_repositories.TryGetValue(type, out var repo))
         {
-            var repositoryInstance = new Repository<T>(_context);
-            _repositories.Add(type, repositoryInstance);
+            repo = new Repository<T>(_context);
+            _repositories[type] = repo;
         }
-        return (IRepository<T>)_repositories[type];
+        return (IRepository<T>)repo;
     }
 
     public async Task<int> SaveChangesAsync()

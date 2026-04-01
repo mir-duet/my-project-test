@@ -26,8 +26,7 @@ public class ProductService : IProductService
         }
 
         // Check for duplicate product names
-        var existingProduct = await _unitOfWork.Repository<Product>().FirstOrDefaultAsync(p => p.Name == name);
-        if (existingProduct != null)
+        if (await _unitOfWork.Repository<Product>().AnyAsync(p => p.Name == name))
         {
             throw new ValidationException($"Product with name '{name}' already exists.");
         }
@@ -66,8 +65,7 @@ public class ProductService : IProductService
         }
 
         // Validate new name doesn't conflict with other products
-        var existingProduct = await _unitOfWork.Repository<Product>().FirstOrDefaultAsync(p => p.Name == name && p.Id != id);
-        if (existingProduct != null)
+        if (await _unitOfWork.Repository<Product>().AnyAsync(p => p.Name == name && p.Id != id))
         {
             throw new ValidationException($"Product with name '{name}' already exists.");
         }
@@ -151,9 +149,8 @@ public class ProductService : IProductService
 
     public async Task<bool> IsProductNameUniqueAsync(string name, Guid? excludeId = null)
     {
-        var product = await _unitOfWork.Repository<Product>().FirstOrDefaultAsync(
+        return !await _unitOfWork.Repository<Product>().AnyAsync(
             p => p.Name == name && (!excludeId.HasValue || p.Id != excludeId.Value));
-        return product == null;
     }
 
     public async Task<ProductDto?> GetProductByNameAsync(string name)
